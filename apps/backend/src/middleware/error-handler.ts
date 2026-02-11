@@ -1,6 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
-import { errorResponse, MessageType } from "../utils/api-response";
+import { errorResponse } from "../utils/api-response";
 import { HttpException } from "../utils/http-exception";
+import { logger } from "@/logger";
+import { MessageType } from "@/types/response-type";
 
 export const errorHandler = (
   err: Error | HttpException,
@@ -9,7 +11,7 @@ export const errorHandler = (
   next: NextFunction,
 ) => {
   if (err instanceof HttpException) {
-    console.error(err.message);
+    logger.error(err.message);
 
     errorResponse({
       res,
@@ -20,7 +22,7 @@ export const errorHandler = (
     });
     return;
   }
-  console.error(err.message);
+  logger.error(err.message);
   errorResponse({
     res,
     message: "Internal Server Error",
