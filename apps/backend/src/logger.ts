@@ -1,5 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import pino, { type Logger } from "pino";
+import { errorResponse } from "./utils/api-response";
+import { MessageType } from "./types/response-type";
 
 const logger: Logger = pino({
   level: process.env.LOG_LEVEL || "info",
@@ -91,8 +93,12 @@ const errorLogger = (
     "Unhandled Error",
   );
 
-  res.status(500).json({
-    error: "Internal Server Error",
+  errorResponse({
+    res,
+    message: "Internal Server Error",
+    statusCode: 500,
+    data: null,
+    type: MessageType.ERROR,
   });
 };
 

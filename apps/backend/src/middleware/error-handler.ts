@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { errorResponse } from "../utils/api-response";
 import { HttpException } from "../utils/http-exception";
-import { logger } from "@/logger";
+import { errorLogger, logger } from "@/logger";
 import { MessageType } from "@/types/response-type";
 
 export const errorHandler = (
@@ -22,12 +22,6 @@ export const errorHandler = (
     });
     return;
   }
-  logger.error(err.message);
-  errorResponse({
-    res,
-    message: "Internal Server Error",
-    statusCode: 500,
-    data: null,
-    type: MessageType.ERROR,
-  });
+
+  errorLogger(err, req, res, next);
 };
