@@ -3,7 +3,8 @@
 // import { queryOptions, useQuery } from "@tanstack/react-query";
 
 // export const getTodos = async () => {
-//   return await axiosInstance.get("/todos");
+//   const resp = await axiosInstance.get('/todos')
+//   return resp.data;
 // };
 
 // export const getTodosQueryKey = () => ["todos"];

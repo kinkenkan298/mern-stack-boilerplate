@@ -1,4 +1,8 @@
-import { MutationCache, QueryClient } from "@tanstack/react-query";
+import {
+  MutationCache,
+  QueryClient,
+  UseMutationOptions,
+} from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
 
