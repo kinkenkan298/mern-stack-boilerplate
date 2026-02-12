@@ -13,7 +13,7 @@ Template ini dibuat untuk mempercepat inisialisasi proyek **MERN (MongoDB, Expre
 
 ### Frontend (`apps/frontend`)
 - React 19
-- TanStack Start + TanStack Router
+- TanStack Start + TanStack Router + TanStack Query
 - Vite
 - TypeScript
 - Tailwind CSS 4
