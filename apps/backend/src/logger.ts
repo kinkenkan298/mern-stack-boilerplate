@@ -1,9 +1,14 @@
+import "dotenv/config";
 import type { NextFunction, Request, Response } from "express";
+import { randomUUID } from "node:crypto";
 import pino, { type Logger } from "pino";
-import { errorResponse } from "./utils/api-response";
-import { MessageType } from "./types/response-type";
+import { errorResponse } from "@/utils/api-response";
+import { MessageType } from "@/types/response-type";
+import { pinoHttp } from "pino-http";
+import { StatusCodes } from "http-status-codes";
 
 const logger: Logger = pino({
+  name: "backend",
   level: process.env.LOG_LEVEL || "info",
   transport: {
     target: "pino-pretty",
@@ -42,37 +47,36 @@ const logger: Logger = pino({
   },
 });
 
-const requestLogger = (req: Request, res: Response, next: NextFunction) => {
-  const start = Date.now();
+const addRequestId = (req: Request, res: Response, next: NextFunction) => {
+  const existingId = req.headers["x-request-id"] as string;
+  const requestId = existingId || randomUUID();
 
-  logger.info(
-    {
-      method: req.method,
-      url: req.url,
-      ip: req.ip,
-      userAgent: req.headers["user-agent"],
-    },
-    "Request received",
-  );
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    const logLevel = res.statusCode >= 400 ? "warn" : "info";
-
-    logger[logLevel](
-      {
-        method: req.method,
-        url: req.url,
-        status: res.statusCode,
-        duration: `${duration}ms`,
-        contentLength: res.get("Content-Length") || "0",
-      },
-      "Response sent",
-    );
-  });
+  // Set for downstream use
+  req.headers["x-request-id"] = requestId;
+  res.setHeader("X-Request-Id", requestId);
 
   next();
 };
+const getLogLevel = (status: number) => {
+  if (status >= StatusCodes.INTERNAL_SERVER_ERROR) return "error";
+  if (status >= StatusCodes.BAD_REQUEST) return "warn";
+  return "info";
+};
+const httpLogger = pinoHttp({
+  logger,
+  genReqId: (req) => req.headers["x-request-id"] as string,
+  customLogLevel: (_req, res) => getLogLevel(res.statusCode),
+  customSuccessMessage: (req) => `${req.method} ${req.url} completed`,
+  customErrorMessage: (_req, res) =>
+    `Request failed with status code: ${res.statusCode}`,
+  serializers: {
+    req: (req) => ({
+      method: req.method,
+      url: req.url,
+      id: req.id,
+    }),
+  },
+});
 
 const errorLogger = (
   err: Error,
@@ -148,5 +152,6 @@ export {
   logBodyRequests,
   logger,
   logQueryParams,
-  requestLogger,
+  httpLogger,
+  addRequestId,
 };

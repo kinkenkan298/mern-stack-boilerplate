@@ -1,24 +1,28 @@
 import cors from "cors";
-import express from "express";
-import { errorHandler } from "./middleware/error-handler";
-import { logBodyRequests, logQueryParams, requestLogger } from "./logger";
-import { connectDB } from "./db";
+import express, { Express } from "express";
+import { errorHandler } from "@/middleware/error-handler";
+import {
+  httpLogger,
+  logBodyRequests,
+  logQueryParams,
+  addRequestId,
+} from "@/logger";
+import { connectDB } from "@/db";
+import helmet from "helmet";
 
-const app = express();
-
-app.use(requestLogger);
-app.use(logBodyRequests);
-app.use(logQueryParams);
+const app: Express = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(
   cors({
     origin: "http://localhost:3000",
     credentials: true,
   }),
 );
+app.use(helmet());
+
+app.use([httpLogger, addRequestId, logBodyRequests, logQueryParams]);
 
 await connectDB();
 
