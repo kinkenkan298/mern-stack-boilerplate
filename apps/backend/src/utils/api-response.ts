@@ -1,12 +1,14 @@
 import { MessageType, type APIResponse } from "@/types/response-type";
 import type { Response } from "express";
+import { StatusCodes } from "http-status-codes";
+
 
 const successResponse = <T>({
   res,
   message,
   data,
   success = true,
-  statusCode = 200,
+  statusCode = StatusCodes.OK,
   type = MessageType.SUCCESS,
 }: APIResponse<T>): Response => {
   return res.status(statusCode).json({
@@ -21,7 +23,7 @@ const errorResponse = <T>({
   message,
   data,
   errors,
-  statusCode = 500,
+  statusCode = StatusCodes.INTERNAL_SERVER_ERROR,
   type = MessageType.ERROR,
 }: APIResponse<T>) => {
   return res.status(statusCode).json({

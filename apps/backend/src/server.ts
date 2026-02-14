@@ -9,6 +9,8 @@ import {
 } from "@/logger";
 import { connectDB } from "@/db";
 import helmet from "helmet";
+import { apiRoutes } from "./routes/api.routes";
+import { StatusCodes } from "http-status-codes";
 
 const app: Express = express();
 
@@ -25,18 +27,15 @@ app.use(helmet());
 app.use([httpLogger, addRequestId, logBodyRequests, logQueryParams]);
 
 await connectDB();
-
 // routes
 
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: true,
-    message: "Backend is healthy",
-  });
-});
+app.use(apiRoutes)
 
 app.get("/", (req, res) => {
-  res.send("Hallo backend!");
+  res.status(StatusCodes.FORBIDDEN).json({
+    status: false,
+    message: "Halaman ini tidak dapat di akses!"
+  })
 });
 
 app.use(errorHandler);

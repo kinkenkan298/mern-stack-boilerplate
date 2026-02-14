@@ -100,7 +100,7 @@ const errorLogger = (
   errorResponse({
     res,
     message: "Internal Server Error",
-    statusCode: 500,
+    statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
     data: null,
     type: MessageType.ERROR,
   });
