@@ -1,24 +1,18 @@
-import "dotenv/config";
-import mongoose from "mongoose";
 import { app } from "./server";
-import { logger } from "./logger";
+import { logger } from "./utils/logger";
+import { configureGracefulShutdown } from "./utils/shutdown";
+import { env } from "./config/env";
+import { connectDB } from "./config/db";
 
-const { PORT } = process.env;
+connectDB()
+  .then(() => {
+    const server = app.listen(env.PORT, () => {
+      logger.info(`Server is running on port ${env.PORT}`);
+    });
 
-const server = app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
-});
-
-const onCloseSignal = async () => {
-  logger.info("sigint received, shutting down");
-
-  await mongoose.connection.close();
-  logger.info("Database connection closed");
-
-  server.close(() => {
-    logger.info("Server closed");
+    configureGracefulShutdown(server);
+  })
+  .catch((error) => {
+    logger.error("Failed to connect to the database:", error);
+    process.exit(1);
   });
-};
-
-process.on("SIGINT", onCloseSignal);
-process.on("SIGTERM", onCloseSignal);

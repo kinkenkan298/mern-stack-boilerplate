@@ -1,27 +1,31 @@
 import type { NextFunction, Request, Response } from "express";
-import { errorResponse } from "../utils/api-response";
-import { HttpException } from "../utils/http-exception";
-import { errorLogger, logger } from "@/logger";
-import { MessageType } from "@/types/response-type";
+import { logger } from "@/utils/logger";
+import { ApiError } from "@/utils/api-error";
+import { env } from "@/config/env";
 
 export const errorHandler = (
-  err: Error | HttpException,
+  err: Error | ApiError,
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  if (err instanceof HttpException) {
-    logger.error(err.message);
+  let statusCode = 500;
+  let message: string = "Internal Server Error";
 
-    errorResponse({
-      res,
-      message: err.message,
-      statusCode: err.status,
-      data: null,
-      type: MessageType.ERROR,
-    });
-    return;
+  if (err instanceof ApiError) {
+    statusCode = err.statusCode;
+    message = err.message;
   }
+  logger.error(
+    err,
+    `Error: ${message} | Status: ${statusCode} | Path: ${req.method} ${req.originalUrl}`,
+  );
 
-  errorLogger(err, req, res, next);
+  const response = {
+    success: false,
+    message,
+    ...(env.NODE_ENV === "development" && { stack: err.stack }),
+  };
+
+  res.status(statusCode).json(response);
 };

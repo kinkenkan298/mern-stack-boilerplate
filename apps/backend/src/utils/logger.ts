@@ -2,10 +2,9 @@ import "dotenv/config";
 import type { NextFunction, Request, Response } from "express";
 import { randomUUID } from "node:crypto";
 import pino, { type Logger } from "pino";
-import { errorResponse } from "@/utils/api-response";
-import { MessageType } from "@/types/response-type";
 import { pinoHttp } from "pino-http";
 import { StatusCodes } from "http-status-codes";
+import { ApiResponse } from "./api-response";
 
 const logger: Logger = pino({
   name: "backend",
@@ -78,34 +77,6 @@ const httpLogger = pinoHttp({
   },
 });
 
-const errorLogger = (
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  logger.error(
-    {
-      err: err,
-      method: req.method,
-      url: req.url,
-      body: req.body,
-      params: req.params,
-      query: req.query,
-      ip: req.ip,
-    },
-    "Unhandled Error",
-  );
-
-  errorResponse({
-    res,
-    message: "Internal Server Error",
-    statusCode: StatusCodes.INTERNAL_SERVER_ERROR,
-    data: null,
-    type: MessageType.ERROR,
-  });
-};
-
 const dbLogger = {
   info: (message: string, data?: any) => {
     logger.info({ ...data, context: "DATABASE" }, message);
@@ -148,7 +119,6 @@ const logQueryParams = (req: Request, res: Response, next: NextFunction) => {
 
 export {
   dbLogger,
-  errorLogger,
   logBodyRequests,
   logger,
   logQueryParams,

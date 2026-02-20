@@ -6,11 +6,12 @@ import {
   logBodyRequests,
   logQueryParams,
   addRequestId,
-} from "@/logger";
-import { connectDB } from "@/db";
+} from "@/utils/logger";
+import { connectDB } from "@/config/db";
 import helmet from "helmet";
-import { apiRoutes } from "./routes/api.routes";
+import { healthRoutes } from "./routes/health.routes";
 import { StatusCodes } from "http-status-codes";
+import { notFoundHandler } from "./middleware/not-found-handler";
 
 const app: Express = express();
 
@@ -26,17 +27,14 @@ app.use(helmet());
 
 app.use([httpLogger, addRequestId, logBodyRequests, logQueryParams]);
 
-await connectDB();
 // routes
 
-app.use(apiRoutes)
-
 app.get("/", (req, res) => {
-  res.status(StatusCodes.FORBIDDEN).json({
-    status: false,
-    message: "Halaman ini tidak dapat di akses!"
-  })
+  res.redirect("/health");
 });
+
+app.use(healthRoutes);
+app.use(notFoundHandler);
 
 app.use(errorHandler);
 
